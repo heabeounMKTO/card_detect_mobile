@@ -1,11 +1,13 @@
 package com.example.card_detect_2
 
-import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import ai.onnxruntime.*
+import ai.onnxruntime.extensions.OrtxPackage
 import android.content.res.AssetManager
 import android.content.res.AssetManager.AssetInputStream
 import android.content.res.Resources
 import android.content.res.loader.AssetsProvider
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
@@ -27,25 +29,25 @@ import java.io.InputStream
 
 class MainActivity : ComponentActivity() {
     private var ortEnv: OrtEnvironment = OrtEnvironment.getEnvironment()
-    private lateinit var OrtSession: OrtSession
+    private lateinit var ortSession: OrtSession
     private lateinit var inputImage: ImageView
     private lateinit var outputImage: ImageView
     private lateinit var objectDetectButton: Button
-    private lateinit var clases: List<String>
+    private lateinit var classes: List<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            Card_detect_2Theme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
-            }
-        }
+        setContentView(R.layout.activity_main)
+
+        inputImage = findViewById(R.id.imageView1)
+        outputImage = findViewById(R.id.imageView2)
+        objectDetectButton = findViewById(R.id.object_detection_button)
+        inputImage.setImageBitmap(
+            BitmapFactory.decodeStream(readInputImage(assets))
+        );
+        val sessionOptions: OrtSession.SessionOptions = OrtSession.SessionOptions()
+
+        classes = readClasses(resources)
     }
 }
 
@@ -59,7 +61,7 @@ private fun readModel(res: Resources): ByteArray {
 }
 
 private fun readInputImage(assets: AssetManager): InputStream {
-    return assets.open("test_object_detection_0.jpg")
+    return assets.open("frame_screenshot_29.01.2024.png")
 }
 
 

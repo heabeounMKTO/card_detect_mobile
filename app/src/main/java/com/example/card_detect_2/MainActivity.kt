@@ -2,8 +2,10 @@ package com.example.card_detect_2
 
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import android.content.res.AssetManager
+import android.content.res.AssetManager.AssetInputStream
 import android.content.res.Resources
-import android.content.res.loader.ResourcesLoader
+import android.content.res.loader.AssetsProvider
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
@@ -29,7 +31,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var inputImage: ImageView
     private lateinit var outputImage: ImageView
     private lateinit var objectDetectButton: Button
-    private var imageid = 0
     private lateinit var clases: List<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +52,16 @@ class MainActivity : ComponentActivity() {
 private fun readClasses(res: Resources): List<String> {
     return res.openRawResource(R.raw.classes).bufferedReader().readLines()
 }
+
+private fun readModel(res: Resources): ByteArray {
+    val modelID = R.raw.yolov8n_with_pre_post_processing
+    return res.openRawResource(modelID).readBytes()
+}
+
+private fun readInputImage(assets: AssetManager): InputStream {
+    return assets.open("test_object_detection_0.jpg")
+}
+
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {

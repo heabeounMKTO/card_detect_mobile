@@ -59,6 +59,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("com.microsoft.onnxruntime:onnxruntime-android:latest.release")
     implementation("com.microsoft.onnxruntime:onnxruntime-extensions-android:latest.release")
     testImplementation("junit:junit:4.13.2")

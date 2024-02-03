@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import java.io.InputStream
 import java.nio.ByteBuffer
+import java.util.Collections
 
 
 internal data class Result (
@@ -20,16 +21,28 @@ internal class ObjectDetect() {
     fun detect(inputStream: InputStream, ortEnv: OrtEnvironment, ortSession: OrtSession): Result {
         val rawImageBytes = inputStream.readBytes()
         val shape = longArrayOf(rawImageBytes.size.toLong())
-
+        // loads as uint8
         val inputTensor = OnnxTensor.createTensor(
             ortEnv,
             ByteBuffer.wrap(rawImageBytes),
             shape,
             OnnxJavaType.UINT8
         )
-       //  loads image as uint8 hehe
 
-        return TODO("Provide the return value")
+        inputTensor.use {
+            val output = ortSession.run(Collections.singletonMap("image", inputTensor),
+                setOf("image_out", "scaled_box_out_next")
+            )
+
+            output.use {
+                val rawOutput = (output?.get(0)?.value) as ByteArray
+                val boxOutput = (output?.get(1)?.value) as Array<FloatArray>
+                val outputImageBitmap = byteArrayToBitmap(rawOutput)
+
+                var result = Result(outputImageBitmap, boxOutput)
+                return result
+            }
+        }
     }
 }
 

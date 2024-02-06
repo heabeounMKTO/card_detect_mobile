@@ -1,6 +1,9 @@
 package com.example.card_detect_2
 
 import ai.onnxruntime.OrtSession
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import ai.onnxruntime.*
 import ai.onnxruntime.extensions.OrtxPackage
 import android.content.res.AssetManager
@@ -8,23 +11,36 @@ import android.content.res.AssetManager.AssetInputStream
 import android.content.res.Resources
 import android.content.res.loader.AssetsProvider
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
 import androidx.activity.*
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RawRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,6 +49,8 @@ import kotlinx.coroutines.*
 import java.util.*
 import java.io.InputStream
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 
 class MainActivity : ComponentActivity() {
     private var ortEnv: OrtEnvironment = OrtEnvironment.getEnvironment()
@@ -48,20 +66,10 @@ class MainActivity : ComponentActivity() {
             Card_detect_2Theme {
                 Surface(modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background) {
-                    Greeting(name = "yes")
-                    GreetingImage()
+                    DetectionSection()
                 }
             }
         }
-//        inputImage = findViewById(R.id.imageView1)
-//        outputImage = findViewById(R.id.imageView2)
-//        objectDetectButton = findViewById(R.id.object_detection_button)
-//        inputImage.setImageBitmap(
-//            BitmapFactory.decodeStream(readInputImage(assets))
-//        );
-//        val sessionOptions: OrtSession.SessionOptions = OrtSession.SessionOptions()
-//
-//        classes = readClasses(resources)
     }
 }
 
@@ -78,27 +86,46 @@ private fun readInputImage(assets: AssetManager): InputStream {
     return assets.open("frame_screenshot_29.01.2024.png")
 }
 
-
 @Composable
-fun GreetingImage() {
-    val image = painterResource(id = R.raw.test_object_detection_0)
-    Box(modifier=Modifier.padding(24.dp)) {
-        Image(painter = image, contentDescription = null, contentScale = ContentScale.Crop)
+fun DetectionSection(modifier: Modifier = Modifier) {
+    var inputImage by remember {
+        mutableStateOf<Uri?>(null)
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    var outputImage by remember {
+        mutableStateOf<Painter?>(null)
+    }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Card_detect_2Theme {
-        Greeting("Android")
+    val galleryLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent() ,
+            onResult = {
+                uri -> uri?.let {
+                    inputImage = it
+            }
+            } )
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+
+        inputImage?.let {
+            Image(painter = rememberAsyncImagePainter(model = inputImage), contentDescription = null,
+                    modifier = Modifier.size(200.dp))
+        }
+        Row {
+            Button(onClick = { galleryLauncher.launch("image/*") }) {
+                Text("load image")
+            }
+            Button(onClick = { outputImage = painterResource(id = R.raw.test_object_detection_0) }) {
+                Text("detect!")
+            }
+        }
+
+        outputImage?.let {
+            Image(painter = rememberAsyncImagePainter(model = outputImage), contentDescription = null,
+                modifier = Modifier.size(200.dp))
+        }
+
     }
 }
